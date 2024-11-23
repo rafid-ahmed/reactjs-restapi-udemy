@@ -12,7 +12,6 @@ import SinglePostPage from './pages/Feed/SinglePost/SinglePost';
 import LoginPage from './pages/Auth/Login';
 import SignupPage from './pages/Auth/Signup';
 import './App.css';
-import { email } from './util/validators';
 
 class App extends Component {
   state = {
@@ -70,6 +69,7 @@ class App extends Component {
         password: authData.password
       })
     })
+    // fetch('URL')
       .then(res => {
         if (res.status === 422) {
           throw new Error('Validation failed.');
@@ -121,6 +121,7 @@ class App extends Component {
         name: authData.signupForm.name.value
       })
     })
+    // fetch('URL')
       .then(res => {
         if (res.status === 422) {
           throw new Error(
