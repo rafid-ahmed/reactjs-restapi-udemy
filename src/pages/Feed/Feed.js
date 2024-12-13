@@ -183,6 +183,29 @@ class Feed extends Component {
             }
           }
         `
+      };
+      if (this.state.editPost) {
+        graphqlQuery = {
+          query: `
+            mutation {
+              updatePost(id: "${this.state.editPost._id}", 
+              postInput: {
+                  title: "${postData.title}", 
+                  content: "${postData.content}", 
+                  imageUrl: "${imageUrl}"
+              }) {
+                _id
+                title
+                content
+                imageUrl
+                creator {
+                  name
+                }
+                createdAt
+              }
+            }
+          `
+        }
       }
       
       return fetch('http://localhost:8080/graphql', {
@@ -198,51 +221,54 @@ class Feed extends Component {
       return res.json();
     })
     .then(resData => {
-        if (resData.errors && resData.errors[0].status === 401) {
-          throw new Error(
-            "Validation failed. Make sure the email address isn't used yet!"
+      if (resData.errors && resData.errors[0].status === 401) {
+        throw new Error(
+          "Validation failed. Make sure the email address isn't used yet!"
+        );
+      }
+      if (resData.errors) {
+        throw new Error('Post failed!');
+      }
+      let resDataField = 'createPost';
+      if (this.state.editPost) {
+        resDataField = 'updatePost';
+      }
+      const post = {
+        _id: resData.data[resDataField]._id,
+        title: resData.data[resDataField].title,
+        content: resData.data[resDataField].content,
+        creator: resData.data[resDataField].creator,
+        createdAt: resData.data[resDataField].createdAt,
+        imagePath: resData.data[resDataField].imageUrl
+      };
+      this.setState(prevState => {
+        let updatedPosts = [...prevState.posts];
+        if (prevState.editPost) {
+          const postIndex = prevState.posts.findIndex(
+            p => p._id === prevState.editPost._id
           );
+          updatedPosts[postIndex] = post;
+        } else {
+          updatedPosts.pop();
+          updatedPosts.unshift(post);
         }
-        if (resData.errors) {
-          throw new Error('User login failed!');
-        }
-        console.log(resData);
-        const post = {
-          _id: resData.data.createPost._id,
-          title: resData.data.createPost.title,
-          content: resData.data.createPost.content,
-          creator: resData.data.createPost.creator,
-          createdAt: resData.data.createPost.createdAt,
-          imagePath: resData.data.createPost.imageUrl
-        };
-        this.setState(prevState => {
-          let updatedPosts = [...prevState.posts];
-          if (prevState.editPost) {
-            const postIndex = prevState.posts.findIndex(
-              p => p._id === prevState.editPost._id
-            );
-            updatedPosts[postIndex] = post;
-          } else {
-            updatedPosts.pop();
-            updatedPosts.unshift(post);
-          }
-          return {
-            posts: updatedPosts,
-            isEditing: false,
-            editPost: null,
-            editLoading: false
-          };
-        });
-      })
-      .catch(err => {
-        console.log(err);
-        this.setState({
+        return {
+          posts: updatedPosts,
           isEditing: false,
           editPost: null,
-          editLoading: false,
-          error: err
-        });
+          editLoading: false
+        };
       });
+    })
+    .catch(err => {
+      console.log(err);
+      this.setState({
+        isEditing: false,
+        editPost: null,
+        editLoading: false,
+        error: err
+      });
+    });
   };
 
   statusInputChangeHandler = (input, value) => {
