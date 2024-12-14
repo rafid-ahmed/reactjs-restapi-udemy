@@ -12,6 +12,7 @@ import SinglePostPage from './pages/Feed/SinglePost/SinglePost';
 import LoginPage from './pages/Auth/Login';
 import SignupPage from './pages/Auth/Signup';
 import './App.css';
+import { email } from './util/validators';
 
 class App extends Component {
   state = {
@@ -61,16 +62,19 @@ class App extends Component {
     this.setState({ authLoading: true });
     const graphqlQuery = {
       query: `
-        {
+        query Login($email: String!, $password: String!) {
           login(
-              email:"${authData.email}",
-              password: "${authData.password}"
+              email: $email,
+              password: $password
             ) {
             token
             userId
           }
         }
-      `
+      `, variables: {
+        email: authData.email,
+        password: authData.password
+      }
     };
     fetch('http://localhost:8080/graphql', {
       method: 'POST',
@@ -123,17 +127,21 @@ class App extends Component {
     this.setState({ authLoading: true });
     const graphqlQuery = {
       query: `
-        mutation {
+        mutation CreateUser($email: String!, $name: String!, $password: String!) {
           createUser(userInput: {
-              email:"${authData.signupForm.email.value}", 
-              name: "${authData.signupForm.name.value}", 
-              password: "${authData.signupForm.password.value}"
+              email: $email, 
+              name: $name, 
+              password: $password
             }) {
             _id
             email
           }
         }
-      `
+      `, variables: {
+        email: authData.signupForm.email.value,
+        password: authData.signupForm.password.value,
+        name: authData.signupForm.name.value
+      }
     };
     fetch('http://localhost:8080/graphql', {
       method: 'POST',

@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 
 import Image from '../../../components/Image/Image';
 import './SinglePost.css';
-import image from '../../../components/Image/Image';
 
 class SinglePost extends Component {
   state = {
@@ -17,8 +16,8 @@ class SinglePost extends Component {
     const postId = this.props.match.params.postId;
     const graphqlQuery = {
       query: `
-        {
-          post(id: "${postId}") {
+        query Post($id: ID!){
+          post(id: $id) {
             title
             content
             imageUrl
@@ -28,7 +27,9 @@ class SinglePost extends Component {
             createdAt
           }
         }
-      `
+      `, variables: {
+        id: postId
+      }
     }
     fetch('http://localhost:8080/graphql', {
       method:'POST',
